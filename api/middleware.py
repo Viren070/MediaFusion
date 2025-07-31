@@ -72,6 +72,7 @@ class UserDataMiddleware(BaseHTTPMiddleware):
             if encoded_user_data:
                 user_data = crypto_utils.decode_user_data(encoded_user_data)
                 secret_str = await crypto_utils.process_user_data(user_data)
+                logging.info(f'Using encoded_user_data header for UserData')
             else:
                 secret_str = request.path_params.get("secret_str") or request.query_params.get("secret_str")
                 user_data = await crypto_utils.decrypt_user_data(secret_str)
@@ -101,6 +102,7 @@ class UserDataMiddleware(BaseHTTPMiddleware):
         # validate api password if set
         if settings.is_public_instance is False:
             is_auth_required = getattr(endpoint, "auth_required", False)
+            logging.info(f'Comparing user password ({user_data.api_password}) against actual password ({settings.api_password})')
             if is_auth_required and user_data.api_password != settings.api_password:
                 # check if the endpoint is for /streams
                 if endpoint and endpoint.__name__ == "get_streams":
